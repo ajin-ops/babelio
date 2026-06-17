@@ -35,6 +35,16 @@ export async function getShopSession(shop) {
   return shops[shop] || null;
 }
 
+export async function deleteShopSession(shop) {
+  const shops = await readJsonFile(SHOP_FILE, {});
+  const existed = Boolean(shops[shop]);
+
+  delete shops[shop];
+  await writeJsonFile(SHOP_FILE, shops);
+
+  return existed;
+}
+
 export async function listShopSessions() {
   const shops = await readJsonFile(SHOP_FILE, {});
   return Object.values(shops).map(({ accessToken, ...safeShop }) => safeShop);

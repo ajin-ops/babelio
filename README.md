@@ -6,6 +6,7 @@ Minimaler OAuth- und Read-only-Connector fuer eine SaaS-App, die Shopify-Shops v
 
 - `GET /login` schuetzt das Dashboard mit E-Mail/Passwort aus Environment Variables.
 - `GET /dashboard` zeigt verbundene Shops und ein Formular zum Hinzufuegen eines Shopify-Shops.
+- `POST /shops/delete` entfernt einen verbundenen Shop aus dem lokalen Dashboard-Speicher.
 - `GET /auth/shopify?shop=dein-shop.myshopify.com` startet den Shopify-OAuth-Flow.
 - `GET /auth/shopify/callback` validiert `state` und Shopify-HMAC, tauscht den Code gegen ein Access Token.
 - `GET /shop?shop=dein-shop.myshopify.com` zeigt erste Shop- und Produktdaten im Dashboard.

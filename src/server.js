@@ -9,7 +9,7 @@ import {
   shopifyGraphql,
   verifyShopifyHmac
 } from "./shopify.js";
-import { getShopSession, listShopSessions, upsertShopSession } from "./store.js";
+import { deleteShopSession, getShopSession, listShopSessions, upsertShopSession } from "./store.js";
 
 const config = getConfig();
 
@@ -74,12 +74,15 @@ function htmlPage(body, { wide = false } = {}) {
     button:hover, a.button:hover { background: var(--brand-dark); }
     .ghost { background: transparent !important; color: var(--ink) !important; border: 1px solid var(--border) !important; }
     .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .actions form { margin: 0; }
     .shop-list { display: grid; gap: 10px; }
     .shop-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; }
     .meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
     code { background: #eef2f7; padding: 2px 5px; border-radius: 4px; }
     pre { overflow: auto; background: #101828; color: #eef6ff; border-radius: 8px; padding: 18px; }
     .error { color: #b42318; background: #fff3f0; border: 1px solid #ffcbc2; border-radius: 6px; padding: 10px 12px; }
+    .danger { background: #b42318; }
+    .danger:hover { background: #8a1c13; }
     @media (max-width: 780px) { main { margin: 24px auto; } header, .shop-row { align-items: stretch; flex-direction: column; } .grid { grid-template-columns: 1fr; } .actions { width: 100%; } button, a.button { width: 100%; } }
   </style>
 </head>
@@ -144,6 +147,10 @@ async function handleDashboard(req, res) {
         <div class="actions">
           <a class="button ghost" href="/shop?shop=${encodeURIComponent(shop.shop)}">Details</a>
           <a class="button" href="/api/shopify/shop?shop=${encodeURIComponent(shop.shop)}">JSON</a>
+          <form action="/shops/delete" method="post">
+            <input type="hidden" name="shop" value="${escapeHtml(shop.shop)}">
+            <button class="danger" type="submit">Entfernen</button>
+          </form>
         </div>
       </div>
     `).join("")
@@ -177,6 +184,19 @@ async function handleDashboard(req, res) {
       <div class="shop-list">${shopRows}</div>
     </section>
   `, { wide: true }));
+}
+
+async function handleDeleteShop(req, res) {
+  if (!requireSession(req, res, config)) return;
+
+  const form = await readForm(req);
+  const shop = normalizeShop(form.get("shop"));
+
+  if (shop) {
+    await deleteShopSession(shop);
+  }
+
+  redirect(res, "/dashboard");
 }
 
 async function handleAuth(req, res, url) {
@@ -398,6 +418,7 @@ async function route(req, res) {
     if (req.method === "POST" && url.pathname === "/login") return await handleLoginPost(req, res);
     if (req.method === "GET" && url.pathname === "/logout") return await handleLogout(req, res);
     if (req.method === "GET" && url.pathname === "/dashboard") return await handleDashboard(req, res);
+    if (req.method === "POST" && url.pathname === "/shops/delete") return await handleDeleteShop(req, res);
     if (req.method === "GET" && url.pathname === "/auth/shopify") return await handleAuth(req, res, url);
     if (req.method === "GET" && url.pathname === "/auth/shopify/callback") return await handleCallback(req, res, url);
     if (req.method === "GET" && url.pathname === "/api/shopify/shop") return await handleShopData(req, res, url);
