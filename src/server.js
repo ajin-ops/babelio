@@ -351,16 +351,16 @@ async function route(req, res) {
   const url = new URL(req.url, config.appUrl);
 
   try {
-    if (req.method === "GET" && url.pathname === "/") return handleHome(req, res);
-    if (req.method === "GET" && url.pathname === "/login") return handleLoginGet(req, res);
-    if (req.method === "POST" && url.pathname === "/login") return handleLoginPost(req, res);
-    if (req.method === "GET" && url.pathname === "/logout") return handleLogout(req, res);
-    if (req.method === "GET" && url.pathname === "/dashboard") return handleDashboard(req, res);
-    if (req.method === "GET" && url.pathname === "/auth/shopify") return handleAuth(req, res, url);
-    if (req.method === "GET" && url.pathname === "/auth/shopify/callback") return handleCallback(req, res, url);
-    if (req.method === "GET" && url.pathname === "/api/shopify/shop") return handleShopData(req, res, url);
-    if (req.method === "GET" && url.pathname === "/shop") return handleShopDetails(req, res, url);
-    if (req.method === "GET" && url.pathname === "/api/shops") return handleShops(req, res);
+    if (req.method === "GET" && url.pathname === "/") return await handleHome(req, res);
+    if (req.method === "GET" && url.pathname === "/login") return await handleLoginGet(req, res);
+    if (req.method === "POST" && url.pathname === "/login") return await handleLoginPost(req, res);
+    if (req.method === "GET" && url.pathname === "/logout") return await handleLogout(req, res);
+    if (req.method === "GET" && url.pathname === "/dashboard") return await handleDashboard(req, res);
+    if (req.method === "GET" && url.pathname === "/auth/shopify") return await handleAuth(req, res, url);
+    if (req.method === "GET" && url.pathname === "/auth/shopify/callback") return await handleCallback(req, res, url);
+    if (req.method === "GET" && url.pathname === "/api/shopify/shop") return await handleShopData(req, res, url);
+    if (req.method === "GET" && url.pathname === "/shop") return await handleShopDetails(req, res, url);
+    if (req.method === "GET" && url.pathname === "/api/shops") return await handleShops(req, res);
     if (req.method === "GET" && url.pathname === "/health") return sendJson(res, 200, { ok: true });
 
     sendJson(res, 404, { error: "Not found" });
