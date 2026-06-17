@@ -5,7 +5,14 @@ Minimaler OAuth- und Read-only-Connector fuer eine SaaS-App, die Shopify-Shops v
 ## Was enthalten ist
 
 - `GET /login` schuetzt das Dashboard mit E-Mail/Passwort aus Environment Variables.
-- `GET /dashboard` zeigt verbundene Shops und ein Formular zum Hinzufuegen eines Shopify-Shops.
+- `GET /dashboard` zeigt die Overview mit MVP-Kennzahlen.
+- `GET /dashboard/integrations` verwaltet Shopify-Shops und spaetere Integrationen.
+- `GET /dashboard/orders` zeigt Bestellungen aus dem verbundenen Shop.
+- `GET /dashboard/products` zeigt Produkte aus dem verbundenen Shop.
+- `GET /dashboard/knowledge` bereitet FAQ- und Wissensverwaltung fuer Agenten vor.
+- `GET /dashboard/agents` enthaelt die erste Konfigurationsmaske fuer Sprachassistenten.
+- `GET /dashboard/conversations` bereitet die Gespraechsuebersicht vor.
+- `GET /dashboard/tasks` bereitet Follow-ups, Rueckrufe und Eskalationen vor.
 - `POST /shops/delete` entfernt einen verbundenen Shop aus dem lokalen Dashboard-Speicher.
 - `GET /auth/shopify?shop=dein-shop.myshopify.com` startet den Shopify-OAuth-Flow.
 - `GET /auth/shopify/callback` validiert `state` und Shopify-HMAC, tauscht den Code gegen ein Access Token.
