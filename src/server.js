@@ -150,6 +150,8 @@ function htmlPage(body, { app = false } = {}) {
 const tabs = [
   ["overview", "Overview", "grid"],
   ["integrations", "Shop Integrations", "shop"],
+  ["orders", "Orders", "orders"],
+  ["products", "Products", "box"],
   ["knowledge", "Knowledge Base", "book"],
   ["agents", "Agents", "bot"],
   ["conversations", "Conversations", "chat"],
