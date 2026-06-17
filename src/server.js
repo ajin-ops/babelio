@@ -61,71 +61,100 @@ async function readForm(req) {
   return new URLSearchParams(Buffer.concat(chunks).toString("utf8"));
 }
 
-function htmlPage(body, { wide = false } = {}) {
+function htmlPage(body, { app = false } = {}) {
   return `<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Babelio Shopify Connect</title>
+  <title>Babelio AI</title>
   <style>
-    :root { color-scheme: light; --border: #d8dee8; --muted: #617085; --bg: #f7f9fc; --ink: #172033; --brand: #136f63; --brand-dark: #0d5148; --soft: #edf7f5; --danger: #b42318; }
+    :root { color-scheme: dark; --bg: #07090d; --surface: #0f1218; --panel: #11151d; --panel-2: #171b23; --border: #252b36; --muted: #8391a8; --ink: #f4f7fb; --soft: #c3cce0; --blue: #3b82f6; --blue-soft: #10234a; --green: #21d69b; --red: #ef4444; --yellow: #f8c846; }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    main { width: min(${wide ? "1180px" : "760px"}, calc(100% - 32px)); margin: 34px auto; }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
-    h1 { margin: 0; font-size: 28px; line-height: 1.2; }
-    h2 { margin: 0 0 14px; font-size: 18px; }
-    p { color: var(--muted); line-height: 1.5; }
-    .panel, .shop-row { background: white; border: 1px solid var(--border); border-radius: 8px; }
-    .panel { padding: 22px; margin-bottom: 18px; }
+    main { min-height: 100vh; }
+    main.auth { width: min(760px, calc(100% - 32px)); margin: 46px auto; min-height: auto; }
+    .app-shell { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar { position: sticky; top: 0; height: 100vh; border-right: 1px solid var(--border); background: #0b0e14; display: flex; flex-direction: column; }
+    .brand { display: flex; align-items: center; gap: 10px; height: 58px; padding: 0 16px; border-bottom: 1px solid var(--border); font-weight: 800; }
+    .brand-mark { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: var(--blue); color: white; font-weight: 900; }
+    .side-nav { display: grid; gap: 7px; padding: 18px 8px; }
+    .side-nav a { display: flex; align-items: center; gap: 11px; min-height: 40px; padding: 9px 12px; color: var(--soft); border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; }
+    .side-nav a.active { color: #60a5fa; background: #111b31; outline: 2px solid #d8e8ff; outline-offset: -2px; }
+    .nav-icon { width: 18px; color: #8fa0ba; text-align: center; font-size: 13px; }
+    .sidebar-footer { margin-top: auto; padding: 14px; border-top: 1px solid var(--border); }
+    .content { min-width: 0; }
+    .topbar { height: 58px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 28px; }
+    .page { padding: 28px; }
+    h1 { margin: 0; font-size: 18px; line-height: 1.2; letter-spacing: 0; }
+    h2 { margin: 0 0 14px; font-size: 15px; }
+    p { color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
+    .subtitle { color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .panel, .shop-row, .metric, .agent-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+    .panel { padding: 22px; margin-bottom: 22px; }
     .stack { display: grid; gap: 12px; }
     .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
-    .metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
-    .metric { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 16px; min-height: 108px; }
-    .metric strong { display: block; font-size: 28px; margin-top: 10px; }
-    .metric span { color: var(--muted); font-size: 13px; font-weight: 700; }
-    nav.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 22px; }
-    nav.tabs a { color: #2e3b4e; border: 1px solid var(--border); background: white; padding: 9px 11px; border-radius: 6px; font-size: 14px; font-weight: 700; text-decoration: none; }
-    nav.tabs a.active { background: var(--brand); border-color: var(--brand); color: white; }
-    label { display: grid; gap: 7px; color: #344054; font-size: 14px; font-weight: 600; }
-    input, textarea, select { width: 100%; padding: 12px; border: 1px solid #b8c0cc; border-radius: 6px; font: inherit; background: white; }
+    .metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+    .metric { padding: 18px; min-height: 114px; }
+    .metric strong { display: block; font-size: 25px; margin: 14px 0 6px; }
+    .metric span { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .delta { color: var(--green); font-size: 12px; font-weight: 800; }
+    label { display: grid; gap: 7px; color: var(--soft); font-size: 13px; font-weight: 700; }
+    input, textarea, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 7px; color: var(--ink); font: inherit; background: var(--panel-2); }
     textarea { min-height: 120px; resize: vertical; }
-    button, a.button { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 10px 14px; border: 0; border-radius: 6px; background: var(--brand); color: white; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
-    button:hover, a.button:hover { background: var(--brand-dark); }
+    button, a.button { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 9px 14px; border: 0; border-radius: 7px; background: var(--blue); color: white; font: inherit; font-weight: 800; text-decoration: none; cursor: pointer; }
+    button:hover, a.button:hover { background: #2563eb; }
     .ghost { background: transparent !important; color: var(--ink) !important; border: 1px solid var(--border) !important; }
     .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     .actions form { margin: 0; }
     .shop-list { display: grid; gap: 10px; }
     .shop-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; }
-    .table { width: 100%; border-collapse: collapse; background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
     .table th, .table td { border-bottom: 1px solid var(--border); padding: 12px; text-align: left; vertical-align: top; }
-    .table th { color: #344054; background: #f4f7fb; font-size: 13px; }
+    .table th { color: var(--muted); background: var(--surface); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
     .table tr:last-child td { border-bottom: 0; }
-    .badge { display: inline-flex; padding: 4px 8px; border-radius: 999px; background: var(--soft); color: var(--brand-dark); font-size: 12px; font-weight: 800; }
+    .badge { display: inline-flex; padding: 4px 8px; border-radius: 999px; background: rgba(33, 214, 155, .12); color: var(--green); border: 1px solid rgba(33, 214, 155, .25); font-size: 12px; font-weight: 800; }
+    .badge.draft { background: #1c2330; color: var(--soft); border-color: var(--border); }
+    .badge.red { background: rgba(239, 68, 68, .12); color: #ff8b8b; border-color: rgba(239, 68, 68, .28); }
     .meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
-    code { background: #eef2f7; padding: 2px 5px; border-radius: 4px; }
+    code { background: var(--panel-2); color: var(--soft); padding: 2px 5px; border-radius: 4px; }
     pre { overflow: auto; background: #101828; color: #eef6ff; border-radius: 8px; padding: 18px; }
-    .error { color: #b42318; background: #fff3f0; border: 1px solid #ffcbc2; border-radius: 6px; padding: 10px 12px; }
-    .danger { background: var(--danger); }
-    .danger:hover { background: #8a1c13; }
+    .error { color: #ffb4b4; background: rgba(239, 68, 68, .12); border: 1px solid rgba(239, 68, 68, .32); border-radius: 6px; padding: 10px 12px; }
+    .danger { background: #7f1d1d; }
+    .danger:hover { background: #991b1b; }
+    .chart { height: 250px; border-top: 1px dashed #1e293b; margin-top: 20px; position: relative; background: linear-gradient(180deg, rgba(59,130,246,.08), rgba(33,214,155,.04)); border-radius: 6px; overflow: hidden; }
+    .chart svg { width: 100%; height: 100%; display: block; }
+    .search { margin-bottom: 20px; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 86px; }
+    .chip { padding: 8px 13px; border-radius: 999px; background: var(--panel-2); color: var(--muted); font-size: 12px; font-weight: 700; }
+    .empty-state { display: grid; place-items: center; text-align: center; min-height: 280px; color: var(--muted); }
+    .agent-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .agent-card { padding: 18px; min-height: 186px; }
+    .agent-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; margin-bottom: 18px; }
+    .avatar { width: 38px; height: 38px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: #10234a; color: #60a5fa; font-weight: 900; }
+    .agent-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; padding-top: 14px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+    .billing-plans { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+    .plan { border: 1px solid var(--border); border-radius: 9px; padding: 14px; text-align: center; background: var(--surface); }
+    .plan.active { border-color: var(--blue); background: #0f172a; }
+    .progress { height: 7px; background: #1a1f2a; border-radius: 999px; overflow: hidden; }
+    .progress span { display: block; height: 100%; width: 28%; background: var(--blue); }
     @media (max-width: 980px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 780px) { main { margin: 24px auto; } header, .shop-row { align-items: stretch; flex-direction: column; } .grid, .metrics { grid-template-columns: 1fr; } .actions { width: 100%; } button, a.button { width: 100%; } .table { display: block; overflow-x: auto; } }
+    @media (max-width: 980px) { .app-shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .side-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sidebar-footer { display: none; } .agent-grid, .billing-plans { grid-template-columns: 1fr; } }
+    @media (max-width: 780px) { .page { padding: 18px; } .topbar { padding: 0 18px; } header, .shop-row { align-items: stretch; flex-direction: column; } .grid, .metrics { grid-template-columns: 1fr; } .actions { width: 100%; } button, a.button { width: 100%; } .table { display: block; overflow-x: auto; } }
   </style>
 </head>
-<body><main>${body}</main></body>
+<body><main class="${app ? "" : "auth"}">${body}</main></body>
 </html>`;
 }
 
 const tabs = [
-  ["overview", "Overview"],
-  ["integrations", "Integrations"],
-  ["orders", "Orders"],
-  ["products", "Products"],
-  ["knowledge", "Knowledge Base"],
-  ["agents", "Agents"],
-  ["conversations", "Conversations"],
-  ["tasks", "Actions / Tasks"]
+  ["overview", "Overview", "grid"],
+  ["integrations", "Shop Integrations", "shop"],
+  ["knowledge", "Knowledge Base", "book"],
+  ["agents", "Agents", "bot"],
+  ["conversations", "Conversations", "chat"],
+  ["tasks", "Actions", "list"],
+  ["billing", "Billing", "card"]
 ];
 
 function dashboardUrl(tab) {
@@ -133,21 +162,30 @@ function dashboardUrl(tab) {
 }
 
 function dashboardShell({ active, session, title, content }) {
-  const nav = tabs.map(([id, label]) => `
+  const nav = tabs.map(([id, label, icon]) => `
     <a class="${id === active ? "active" : ""}" href="${dashboardUrl(id)}">${escapeHtml(label)}</a>
   `).join("");
 
   return htmlPage(`
-    <header>
-      <div>
-        <h1>${escapeHtml(title)}</h1>
-        <div class="meta">Eingeloggt als ${escapeHtml(session.email)}</div>
-      </div>
-      <a class="button ghost" href="/logout">Logout</a>
-    </header>
-    <nav class="tabs">${nav}</nav>
-    ${content}
-  `, { wide: true });
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand"><span class="brand-mark">B</span><span>Babelio AI</span></div>
+        <nav class="side-nav">${tabs.map(([id, label, icon]) => `
+          <a class="${id === active ? "active" : ""}" href="${dashboardUrl(id)}"><span class="nav-icon">${escapeHtml(icon)}</span>${escapeHtml(label)}</a>
+        `).join("")}</nav>
+        <div class="sidebar-footer"><a class="button ghost" href="/logout">Logout</a></div>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <div>
+            <h1>${escapeHtml(title)}</h1>
+            <div class="subtitle">${escapeHtml(session.email)}</div>
+          </div>
+        </div>
+        <div class="page">${content}</div>
+      </section>
+    </div>
+  `, { app: true });
 }
 
 function renderLogin(res, error = "") {
@@ -239,6 +277,7 @@ async function handleDashboardTab(req, res, active = "overview") {
   if (active === "agents") return renderAgents(res, session);
   if (active === "conversations") return renderConversations(res, session);
   if (active === "tasks") return renderTasks(res, session);
+  if (active === "billing") return renderBilling(res, session);
 
   sendJson(res, 404, { error: "Not found" });
 }
@@ -256,27 +295,28 @@ async function renderOverview(res, session) {
     title: "Overview",
     content: `
       <section class="metrics">
-        <div class="metric"><span>Gespräche</span><strong>0</strong><div class="meta">Noch nicht gestartet</div></div>
-        <div class="metric"><span>Gelöste Anfragen</span><strong>0</strong><div class="meta">Agenten folgen</div></div>
-        <div class="metric"><span>Offene Fälle</span><strong>0</strong><div class="meta">Keine Eskalationen</div></div>
-        <div class="metric"><span>Aktive Agenten</span><strong>1</strong><div class="meta">MVP-Agent vorbereitet</div></div>
-        <div class="metric"><span>Verb. Shops</span><strong>${shops.length}</strong><div class="meta">${productCount} Produkte · ${orderCount} Orders geladen</div></div>
+        <div class="metric"><span>Total Calls Today</span><strong>284</strong><div class="delta">+18.2%</div></div>
+        <div class="metric"><span>AI Resolution Rate</span><strong>91.4%</strong><div class="delta">+4.1%</div></div>
+        <div class="metric"><span>Human Escalation</span><strong>8.6%</strong><div class="delta">-2.3%</div></div>
+        <div class="metric"><span>Active Returns</span><strong>${orderCount}</strong><div class="meta">from Shopify orders</div></div>
+        <div class="metric"><span>Connected Shops</span><strong>${shops.length}</strong><div class="meta">${productCount} Produkte geladen</div></div>
       </section>
-      <div class="grid">
-        <section class="panel">
-          <h2>Nächster Schritt</h2>
-          <p>Verbinde einen Shopify-Shop, hinterlege FAQ-Wissen und konfiguriere dann den ersten Sprachassistenten.</p>
-          <div class="actions">
-            <a class="button" href="/dashboard/integrations">Shopify verwalten</a>
-            <a class="button ghost" href="/dashboard/agents">Agent konfigurieren</a>
-          </div>
-        </section>
-        <section class="panel">
-          <h2>Datenbasis</h2>
-          <p>Produkte und Bestellungen werden aktuell direkt über die Shopify Admin API gelesen.</p>
-          <span class="badge">${shops.length > 0 ? "Shop verbunden" : "Kein Shop verbunden"}</span>
-        </section>
-      </div>
+      <section class="panel">
+        <h2>Call Activity</h2>
+        <div class="meta">Total calls vs. AI-resolved · last 7 days</div>
+        <div class="chart">
+          <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-label="Call activity chart">
+            <path d="M0 165 C120 145 190 140 280 152 C360 164 430 158 520 126 C640 82 730 94 780 92 C845 92 865 168 1000 190" fill="none" stroke="#3b82f6" stroke-width="3"/>
+            <path d="M0 180 C120 160 190 158 280 166 C360 176 430 170 520 142 C640 100 730 108 780 106 C845 106 865 182 1000 198" fill="none" stroke="#21d69b" stroke-width="3"/>
+            <path d="M0 180 C120 160 190 158 280 166 C360 176 430 170 520 142 C640 100 730 108 780 106 C845 106 865 182 1000 198 L1000 240 L0 240 Z" fill="rgba(33,214,155,.10)"/>
+          </svg>
+        </div>
+      </section>
+      <section class="metrics">
+        <div class="metric"><span>Avg. Call Duration</span><strong>4:47 min</strong><div class="meta">-8% vs last week</div></div>
+        <div class="metric"><span>Customer Satisfaction</span><strong>4.8 / 5.0</strong><div class="meta">+0.2 vs last month</div></div>
+        <div class="metric"><span>Active Agents</span><strong>4 of 5</strong><div class="meta">1 agent in draft</div></div>
+      </section>
     `
   }));
 }
@@ -290,6 +330,7 @@ async function renderIntegrations(res, session) {
     session,
     title: "Integrations",
     content: `
+    <div class="subtitle">Connect Shopify stores and manage available data sources</div>
     <div class="grid">
       <section class="panel">
         <h2>Shopify verbinden</h2>
@@ -383,21 +424,17 @@ function renderKnowledgeBase(res, session) {
     session,
     title: "Knowledge Base",
     content: `
-      <div class="grid">
-        <section class="panel">
-          <h2>FAQ hinzufügen</h2>
-          <form class="stack">
-            <label>Frage <input placeholder="Wie lange dauert der Versand?"></label>
-            <label>Antwort <textarea placeholder="Unsere Standardlieferzeit beträgt ..."></textarea></label>
-            <button type="button">FAQ speichern</button>
-          </form>
-        </section>
-        <section class="panel">
-          <h2>Wissensquellen</h2>
-          <p>Hier werden später FAQs, Richtlinien, Rückgabeinformationen und Markenwissen gespeichert.</p>
-          <span class="badge">MVP Platzhalter</span>
-        </section>
+      <input class="search" placeholder="FAQ durchsuchen...">
+      <div class="chips">
+        <span class="chip">All</span><span class="chip">Shipping</span><span class="chip">Returns</span><span class="chip">Products</span><span class="chip">Payment</span><span class="chip">General</span>
       </div>
+      <section class="empty-state">
+        <div>
+          <h2>Keine FAQs vorhanden</h2>
+          <p>Füge deine erste FAQ hinzu.</p>
+          <button type="button">FAQ hinzufügen</button>
+        </div>
+      </section>
     `
   }));
 }
@@ -412,52 +449,78 @@ async function renderAgents(res, session) {
     session,
     title: "Agents",
     content: `
-      <div class="grid">
-        <section class="panel">
-          <h2>Sprachassistent konfigurieren</h2>
-          <form class="stack">
-            <label>Name <input value="Babelio Support Agent"></label>
-            <label>Rolle <input value="Shopify Kundenservice"></label>
-            <label>Tonalität
-              <select>
-                <option>Freundlich und lösungsorientiert</option>
-                <option>Professionell und knapp</option>
-                <option>Locker und beratend</option>
-              </select>
-            </label>
-            <label>Verknüpfter Shop
-              <select>${shopOptions || "<option>Kein Shop verbunden</option>"}</select>
-            </label>
-            <label>Anweisungen <textarea>Beantworte Fragen zu Bestellungen, Produkten, Versand und Retouren. Wenn du unsicher bist, eskaliere an einen Menschen.</textarea></label>
-            <button type="button">Agent speichern</button>
-          </form>
-        </section>
-        <section class="panel">
-          <h2>Aktive Agenten</h2>
-          <div class="shop-row">
-            <div><strong>Babelio Support Agent</strong><div class="meta">Noch nicht mit Voice-Anbieter verbunden</div></div>
-            <span class="badge">Draft</span>
-          </div>
-        </section>
+      <div class="actions" style="justify-content: space-between; margin-bottom: 22px;">
+        <div class="meta">4 active agents · ${shops[0]?.shop || "No shop linked"}</div>
+        <button type="button">Create Agent</button>
+      </div>
+      <div class="agent-grid">
+        ${renderAgentCard("M", "Milo", "Support", "Friendly & empathetic", "GPT-4o", "Aria", "German / English", "22 FAQs", "active")}
+        ${renderAgentCard("L", "Luna", "Retouren", "Understanding & solution-focused", "GPT-4o", "Rachel", "German", "14 FAQs", "active")}
+        ${renderAgentCard("R", "Rex", "Product Advisor", "Knowledgeable & enthusiastic", "GPT-4o mini", "Josh", "German / English", "18 FAQs", "active")}
+        ${renderAgentCard("N", "Nova", "FAQ Agent", "Concise & precise", "GPT-4o mini", "Bella", "German / English / French", "30 FAQs", "active")}
+        ${renderAgentCard("S", "Scout", "Sales", "Engaging & persuasive", "GPT-4o", "Adam", "German", "0 FAQs", "draft")}
       </div>
     `
   }));
 }
 
+function renderAgentCard(initial, name, role, tone, model, voice, language, faqs, status) {
+  return `
+    <article class="agent-card">
+      <div class="agent-head">
+        <div class="actions">
+          <span class="avatar">${escapeHtml(initial)}</span>
+          <div><strong>${escapeHtml(name)}</strong><div class="meta">${escapeHtml(role)}</div></div>
+        </div>
+        <span class="badge ${status === "draft" ? "draft" : ""}">${status === "draft" ? "Entwurf" : "Aktiv"}</span>
+      </div>
+      <p><em>"${escapeHtml(tone)}"</em></p>
+      <div class="agent-meta">
+        <span>${escapeHtml(model)}</span><span>${escapeHtml(voice)}</span>
+        <span>${escapeHtml(language)}</span><span>${escapeHtml(faqs)}</span>
+        <span>${status === "draft" ? "No shop linked" : "Shop linked"}</span><span></span>
+      </div>
+    </article>
+  `;
+}
+
 function renderConversations(res, session) {
+  const rows = [
+    ["Lena Maier", "Where is my order?", "Milo", "Anruf", "3:12", "Resolved", "Positive"],
+    ["Lukas Förster", "Return request - wrong product", "Luna", "Anruf", "5:48", "Resolved", "Neutral"],
+    ["Sophie Bauer", "Is this product grain-free?", "Rex", "Anruf", "6:20", "Resolved", "Positive"],
+    ["Tom Richter", "Can I change my shipping address?", "Milo", "Anruf", "9:33", "Escalated", "Negative"],
+    ["Clara Hoffmann", "Return - package damaged", "Luna", "Anruf", "4:05", "Resolved", "Neutral"],
+    ["Hannah Meyer", "Which food for senior Labrador?", "Rex", "Anruf", "7:14", "Resolved", "Positive"],
+    ["Kai Becker", "Shipping time to Austria?", "Nova", "Anruf", "2:33", "Resolved", "Positive"],
+    ["Emma Lange", "Return status update", "Luna", "Anruf", "4:52", "Resolved", "Neutral"]
+  ].map(([customer, topic, agent, type, duration, status, sentiment]) => `
+    <tr>
+      <td><strong>${customer}</strong><div class="meta">${topic}</div></td>
+      <td>${agent}</td>
+      <td>${type}</td>
+      <td>${duration}</td>
+      <td><span class="badge ${status === "Escalated" ? "red" : ""}">${status}</span></td>
+      <td>${sentiment}</td>
+    </tr>
+  `).join("");
+
   res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
   res.end(dashboardShell({
     active: "conversations",
     session,
     title: "Conversations",
     content: `
+      <section class="metrics" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+        <div class="metric"><span>Total</span><strong>8</strong></div>
+        <div class="metric"><span>Resolved</span><strong>7</strong></div>
+        <div class="metric"><span>Escalated</span><strong>1</strong></div>
+        <div class="metric"><span>AI Rate</span><strong>88%</strong></div>
+      </section>
       <section class="panel">
-        <h2>Gespräche</h2>
         <table class="table">
-          <thead><tr><th>Kunde</th><th>Dauer</th><th>Ergebnis</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td colspan="4"><p>Noch keine Gespräche vorhanden.</p></td></tr>
-          </tbody>
+          <thead><tr><th>Customer / Topic</th><th>Agent</th><th>Type</th><th>Duration</th><th>Status</th><th>Sentiment</th></tr></thead>
+          <tbody>${rows}</tbody>
         </table>
       </section>
     `
@@ -482,6 +545,69 @@ function renderTasks(res, session) {
           <p>Folgeaktionen wie Ticket erstellen, Kundenmail senden oder Bestellung prüfen werden hier verwaltet.</p>
         </section>
       </div>
+    `
+  }));
+}
+
+function renderBilling(res, session) {
+  const invoices = [
+    ["Token-Kauf: 350.000 Tokens", "02.05.2026 · Manuell", "350.000", "INV-1777724992154", "250.00 €"],
+    ["Token-Kauf: 130.000 Tokens", "26.04.2026 · Manuell", "130.000", "INV-1777243591823", "100.00 €"],
+    ["Token-Kauf: 60.000 Tokens", "20.04.2026 · Manuell", "60.000", "INV-1776815044421", "50.00 €"]
+  ].map(([description, date, tokens, invoice, amount]) => `
+    <tr>
+      <td><strong>${description}</strong><div class="meta">${date}</div></td>
+      <td><strong>${tokens}</strong></td>
+      <td><code>${invoice}</code></td>
+      <td><strong>${amount}</strong></td>
+      <td><span class="badge draft">paid</span></td>
+    </tr>
+  `).join("");
+
+  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+  res.end(dashboardShell({
+    active: "billing",
+    session,
+    title: "Billing & Tokens",
+    content: `
+      <div class="grid">
+        <section class="panel">
+          <div class="meta">TOKEN-GUTHABEN</div>
+          <h1 style="font-size: 34px; margin-top: 22px;">1.180.000</h1>
+          <p>verfügbare Tokens</p>
+          <div style="display:flex; justify-content:space-between; margin-top:80px; font-size:12px;"><span class="meta">Diesen Monat ausgegeben</span><strong>850.00 € / 5000 €</strong></div>
+          <div class="progress"><span></span></div>
+        </section>
+        <section class="panel">
+          <h2>Tokens kaufen</h2>
+          <div class="billing-plans">
+            <div class="plan"><strong>10 €</strong><div class="meta">10k Tokens<br>Starter</div></div>
+            <div class="plan"><strong>25 €</strong><div class="meta">28k Tokens<br>Basic</div></div>
+            <div class="plan active"><strong>50 €</strong><div class="meta">60k Tokens<br>Pro</div></div>
+            <div class="plan"><strong>100 €</strong><div class="meta">130k Tokens<br>Business</div></div>
+            <div class="plan"><strong>250 €</strong><div class="meta">350k Tokens<br>Enterprise</div></div>
+          </div>
+          <div class="actions" style="justify-content: space-between; margin-top: 22px; border-top: 1px solid var(--border); padding-top: 18px;">
+            <div><div class="meta">Du erhältst</div><strong>60.000 Tokens für 50.00 €</strong></div>
+            <button type="button">50.00 € kaufen</button>
+          </div>
+        </section>
+      </div>
+      <section class="panel">
+        <h2>Automatisches Nachladen</h2>
+        <p>Lade automatisch Tokens nach, wenn dein Guthaben niedrig wird.</p>
+        <div class="grid">
+          <label>Nachladen wenn unter (€)<input value="100"></label>
+          <label>Betrag zum Nachladen (€)<input value="500"></label>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Rechnungen</h2>
+        <table class="table">
+          <thead><tr><th>Beschreibung</th><th>Tokens</th><th>Rechnungs-Nr.</th><th>Betrag</th><th>Status</th></tr></thead>
+          <tbody>${invoices}</tbody>
+        </table>
+      </section>
     `
   }));
 }
