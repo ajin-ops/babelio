@@ -291,6 +291,23 @@ async function loadShopData(url) {
             }
           }
         }
+        orders(first: 10, sortKey: CREATED_AT, reverse: true) {
+          edges {
+            node {
+              id
+              name
+              createdAt
+              displayFulfillmentStatus
+              displayFinancialStatus
+              totalPriceSet {
+                shopMoney {
+                  amount
+                  currencyCode
+                }
+              }
+            }
+          }
+        }
       }
     `
   });
@@ -303,6 +320,13 @@ async function handleShopData(req, res, url) {
 
   const { data } = await loadShopData(url);
   sendJson(res, 200, data);
+}
+
+async function handleOrdersData(req, res, url) {
+  if (!requireSession(req, res, config)) return;
+
+  const { data } = await loadShopData(url);
+  sendJson(res, 200, { orders: data.orders });
 }
 
 async function handleShopDetails(req, res, url) {
@@ -319,6 +343,20 @@ async function handleShopDetails(req, res, url) {
       <code>${escapeHtml(node.id)}</code>
     </div>
   `).join("");
+
+  const orders = data.orders.edges.map(({ node }) => {
+    const money = node.totalPriceSet.shopMoney;
+
+    return `
+      <div class="shop-row">
+        <div>
+          <strong>${escapeHtml(node.name)}</strong>
+          <div class="meta">${escapeHtml(node.displayFinancialStatus)} · ${escapeHtml(node.displayFulfillmentStatus)} · ${escapeHtml(node.createdAt)}</div>
+        </div>
+        <code>${escapeHtml(money.amount)} ${escapeHtml(money.currencyCode)}</code>
+      </div>
+    `;
+  }).join("");
 
   res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
   res.end(htmlPage(`
@@ -337,6 +375,10 @@ async function handleShopDetails(req, res, url) {
     <section class="panel">
       <h2>Produkte</h2>
       <div class="shop-list">${products || "<p>Keine Produkte gefunden.</p>"}</div>
+    </section>
+    <section class="panel">
+      <h2>Bestellungen</h2>
+      <div class="shop-list">${orders || "<p>Keine Bestellungen gefunden.</p>"}</div>
     </section>
   `, { wide: true }));
 }
@@ -359,6 +401,7 @@ async function route(req, res) {
     if (req.method === "GET" && url.pathname === "/auth/shopify") return await handleAuth(req, res, url);
     if (req.method === "GET" && url.pathname === "/auth/shopify/callback") return await handleCallback(req, res, url);
     if (req.method === "GET" && url.pathname === "/api/shopify/shop") return await handleShopData(req, res, url);
+    if (req.method === "GET" && url.pathname === "/api/shopify/orders") return await handleOrdersData(req, res, url);
     if (req.method === "GET" && url.pathname === "/shop") return await handleShopDetails(req, res, url);
     if (req.method === "GET" && url.pathname === "/api/shops") return await handleShops(req, res);
     if (req.method === "GET" && url.pathname === "/health") return sendJson(res, 200, { ok: true });

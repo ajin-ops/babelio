@@ -10,6 +10,7 @@ Minimaler OAuth- und Read-only-Connector fuer eine SaaS-App, die Shopify-Shops v
 - `GET /auth/shopify/callback` validiert `state` und Shopify-HMAC, tauscht den Code gegen ein Access Token.
 - `GET /shop?shop=dein-shop.myshopify.com` zeigt erste Shop- und Produktdaten im Dashboard.
 - `GET /api/shopify/shop?shop=dein-shop.myshopify.com` liest Shop- und Produktdaten per Admin GraphQL API.
+- `GET /api/shopify/orders?shop=dein-shop.myshopify.com` liest die letzten Bestellungen per Admin GraphQL API.
 - `GET /api/shops` listet verbundene Shops ohne Access Tokens.
 
 ## Shopify App konfigurieren
@@ -87,6 +88,7 @@ Danach oeffnest du `http://localhost:3000` und gibst deinen Shop ein.
 
 - Die Datei `data/shops.json` ist nur fuer lokale Entwicklung gedacht. In Produktion gehoeren Access Tokens verschluesselt in eine Datenbank.
 - Auf Render Free ist das Dateisystem nicht dauerhaft. Fuer echte Nutzung brauchen wir als naechsten Schritt eine Datenbank, z. B. Supabase Postgres.
+- `read_orders` liefert standardmaessig Bestellungen der letzten 60 Tage. Fuer aeltere Bestellungen braucht eine Shopify-App zusaetzliche Freigaben.
 - Fordere nur die Scopes an, die du wirklich brauchst. Der Starter nutzt `read_products,read_orders`.
 - Die Admin API-Version steht bewusst fest auf `2026-04`, weil das im Juni 2026 die stabile Version ist. Aktualisiere sie quartalsweise.
 - Wenn die App eingebettet im Shopify Admin laufen soll, ist Shopifys Managed Installation/Token Exchange Flow der modernere Weg. Dieser Starter ist fuer einen standalone SaaS-Connect-Flow gedacht.
